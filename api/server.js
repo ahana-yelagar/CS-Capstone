@@ -1,6 +1,6 @@
 const mysql = require('mysql2');
 const express = require('express');
-const cors = require('cors'); // 👈 Import CORS
+const cors = require('cors'); // Import CORS
 require('dotenv').config();
 const moment = require('moment');
 
@@ -9,8 +9,8 @@ const app = express();
 const port = process.env.PORT || 80;
 
 // === MIDDLEWARE ===
-app.use(cors()); // 👈 Enable CORS (for all origins — good for dev)
-app.use(express.json()); // 👈 Parse incoming JSON bodies
+app.use(cors()); // Enable CORS 
+app.use(express.json()); // Parse incoming JSON bodies
 
 // === DB CONNECTION ===
 const connection = mysql.createConnection({
@@ -90,8 +90,7 @@ app.post('/report', (req, res) => {
     Type,
     Incident,
     Email,
-    latitude,
-    longitude,
+    Location,
     LocationDesc,
     Weapon,
     WeaponDesc,
@@ -102,15 +101,18 @@ app.post('/report', (req, res) => {
     Date,
   } = req.body;
 
-  // Ensure required fields are provided
-  if (!Name ||  !Email ) {
-    return res.status(400).json({ message: 'Missing required fields' });
-  }
 
-  // Prepare the data for insertion
+  const latitude = Location?.latitude || null;
+  const longitude = Location?.longitude || null;
+  const dateValue = Date ? Date : null; 
+  const weaponValue = Weapon ? 1 : null;
+  const victimValue = Victim ? 1 : null;
+
+
+  // Prepare the data to be inserted into database
   const query = `
-    INSERT INTO reports (Name, Type, Incident, Email, latitude, longitude, LocationDesc, Weapon, WeaponDesc, IncidentDesc, PerpDesc, Victim, VictimDesc, Date)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO reports (Name, Type, Incident, Email,  LocationDesc, Weapon, WeaponDesc, IncidentDesc, PerpDesc, Victim, VictimDesc, Date, latitude, longitude)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
 
@@ -123,16 +125,16 @@ app.post('/report', (req, res) => {
       Type,
       Incident,
       Email,
-      latitude,
-      longitude,
       LocationDesc,
-      Weapon,
+      weaponValue,
       WeaponDesc,
       IncidentDesc,
       PerpDesc,
-      Victim,
+      victimValue,
       VictimDesc,
-      Date,
+      dateValue,
+      latitude,
+      longitude
     ],
     (err, results) => {
       if (err) {
@@ -146,6 +148,19 @@ app.post('/report', (req, res) => {
   );
 });
 
+app.get('/reports', (req, res) => {
+  const query = 'SELECT * FROM reports';
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching reports:', err);
+      return res.status(500).json({ message: 'Error fetching reports' });
+    }
+
+    res.status(200).json(results);
+  });
+});
+
 
 app.get('/ping', (req, res) => {
   res.json({ message: 'Server is up and running!' });
@@ -156,3 +171,4 @@ app.get('/ping', (req, res) => {
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server running on port ${port}`);
 });
+
