@@ -11,7 +11,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import BackToHomeButton from './BackToHomeButton'; 
 
-const PUBLIC_SAFETY_NUMBER = 'tel:5152712222'; // Replace with actual number
+const PUBLIC_SAFETY_NUMBER = 'tel:5152712222'; 
 
 const TimerScreen = ({ navigation }) => {
   const [isPickerVisible, setPickerVisible] = useState(false);
